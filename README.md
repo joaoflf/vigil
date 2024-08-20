@@ -18,7 +18,7 @@ Vigil is a traffic accident detection system that uses computer vision and machi
 ## 🚀 Key Features
 
 - **Real-time Video Processing**: Analyze multiple traffic camera feeds simultaneously
-- **Image Classification and Object Detection**: Utilize an image classification model for accident deteaction and possibly object detection for accurate vehicle tracking
+- **Image Classification and Object Detection**: Utilize an image classification model for accident detection and possibly object detection for accurate vehicle tracking
 - **Scalable Data Pipeline**: Built with Apache Kafka and Apache Flink for high-throughput processing
 - **Automated Alert System**: Instant notifications upon accident detection
 
