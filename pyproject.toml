@@ -1,0 +1,11 @@
+[project]
+name = "vigil"
+version = "0.1.0"
+description = "Real-Time Traffic Accident Detection System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "inference>=0.18.1",
+    "opencv-python>=4.10.0.84",
+    "python-dotenv>=1.0.1",
+]
