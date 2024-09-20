@@ -1150,6 +1150,15 @@ wheels = [
 ]
 
 [[package]]
+name = "kafka-python"
+version = "2.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/4c/2595fb5733c3ac01aef3dacce17ff07f7f3336d9f96548bcf723b9073e5c/kafka-python-2.0.2.tar.gz", hash = "sha256:04dfe7fea2b63726cd6f3e79a2d86e709d608d74406638c5da33a01d45a9d7e3", size = 265053 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/68/dcb0db055309f680ab2931a3eeb22d865604b638acf8c914bedf4c1a0c8c/kafka_python-2.0.2-py2.py3-none-any.whl", hash = "sha256:2d92418c7cb1c298fa6c7f0fb3519b520d0d7526ac6cb7ae2a4fc65a51a94b6e", size = 246508 },
+]
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.7"
 source = { registry = "https://pypi.org/simple" }
@@ -2841,6 +2850,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "inference" },
+    { name = "kafka-python" },
     { name = "opencv-python" },
     { name = "python-dotenv" },
 ]
@@ -2848,6 +2858,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "inference", specifier = ">=0.18.1" },
+    { name = "kafka-python", specifier = ">=2.0.2" },
     { name = "opencv-python", specifier = ">=4.10.0.84" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
 ]
