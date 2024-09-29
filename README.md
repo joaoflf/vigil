@@ -4,27 +4,16 @@
 
 Real-Time Traffic Accident Detection System
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)](https://pytorch.org/)
-[![Kafka](https://img.shields.io/badge/Apache%20Kafka-000?style=for-the-badge&logo=apachekafka)](https://kafka.apache.org/)
-[![Flink](https://img.shields.io/badge/Apache%20Flink-E6526F?style=for-the-badge&logo=Apache%20Flink&logoColor=white)](https://flink.apache.org/)
-
 </div>
 
 ## 📊 Project Overview
 
-Vigil is a traffic accident detection system that uses computer vision and machine learning to analyze live traffic camera feeds. Our goal is to reduce emergency response times and potentially save lives by providing immediate accident detection and notification.
+Vigil is a traffic accident detection system that uses computer vision and machine learning to analyze live traffic camera feeds. The core idea is to build a system that extract video frames from a large number of traffic cameras, runs it through a computer vision model that detects car accidents and then notify a user interface.
+Follow along the journey of building this project in my newsletter [Calculated Randonmess](https://calculatedrandomness.substack.com/).
 
-## 🚀 Key Features
+## 🚀 Design
 
-- **Real-time Video Processing**: Analyze multiple traffic camera feeds simultaneously
-- **Image Classification and Object Detection**: Utilize an image classification model for accident detection and possibly object detection for accurate vehicle tracking
-- **Scalable Data Pipeline**: Built with Apache Kafka and Apache Flink for high-throughput processing
-- **Automated Alert System**: Instant notifications upon accident detection
-
-## 📚 Documentation
-
-For detailed documentation, please visit our [Wiki](https://github.com/joaoflf/vigil/wiki).
+![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F56e0625c-e96f-4a47-aaca-1ea48be2852c_3082x1952.png)
 
 ## 🤝 Contributing
 
