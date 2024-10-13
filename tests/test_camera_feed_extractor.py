@@ -1,6 +1,6 @@
 import requests
 import pytest
-from src.camera_feed_extractor import CameraFeed, FeedExtractor
+from src.feed_extractor import CameraFeed, FeedExtractor
 
 
 @pytest.fixture
