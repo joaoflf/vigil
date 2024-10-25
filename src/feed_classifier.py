@@ -1,5 +1,5 @@
 import pickle
-import json
+import jsonpickle
 import zmq
 import cv2
 from dotenv import load_dotenv
@@ -8,43 +8,47 @@ import os
 
 
 class FeedClassifier:
-    def __init__(self) -> None:
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.PULL)
-        self.socket.connect("tcp://localhost:5556")
-        print("Listening on 5556")
-
+    def __init__(self, confidence: float) -> None:
+        self.confidence = confidence
         load_dotenv()
-        model = get_roboflow_model(
+        self.model = get_roboflow_model(
             model_id="crash-car-detection/3", api_key=os.environ.get("RF_API_KEY")
         )
 
+        context = zmq.Context()
+        socket = context.socket(zmq.PULL)
+        socket.connect("tcp://localhost:5556")
+        print("Listening on 5556")
+
         try:
             while True:
-                raw_message = self.socket.recv()
-                name, last_update, frame = pickle.loads(raw_message)
-                result = model.infer(frame)[0]
-                is_accident = any(
-                    [
-                        prediction.class_name == "accident"
-                        for prediction in result.predictions
-                    ]
-                )
-
-                if is_accident:
-                    print("Accident found!")
-                    cv2.imwrite(f"positive-{last_update}.jpg", frame)
-                    with open(f"positive-{last_update}.txt", "w") as file:
-                        json.dump(result.predictions, file)
-                else:
-                    print("No accidents found")
-
+                self.processMessage(socket.recv())
         except KeyboardInterrupt:
             print("W: interrupt received, stopping...")
         finally:
-            self.socket.close()
-            self.context.term()
+            socket.close()
+            context.term()
+
+    def processMessage(self, message: bytes) -> None:
+        name, last_update, frame = pickle.loads(message)
+        result = self.model.infer(frame)[0]
+
+        is_accident = any(
+            [
+                prediction.class_name == "accident"
+                and prediction.confidence >= self.confidence
+                for prediction in result.predictions
+            ]
+        )
+
+        if is_accident:
+            print("Accident found!")
+            cv2.imwrite(f"positive-{last_update}.jpg", frame)
+            with open(f"positive-{last_update}.txt", "w") as file:
+                file.write(str(jsonpickle.encode(result.predictions)))
+        else:
+            print("No accidents found")
 
 
 if __name__ == "__main__":
-    classifier = FeedClassifier()
+    classifier = FeedClassifier(0.7)

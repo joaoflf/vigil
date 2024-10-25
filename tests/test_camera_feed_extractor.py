@@ -1,5 +1,6 @@
 import requests
 import pytest
+from unittest.mock import Mock
 from src.feed_extractor import CameraFeed, FeedExtractor
 
 
@@ -27,9 +28,12 @@ def text_extract_frames(camera_feed, monkeypatch, capsys):
     monkeypatch.setattr(requests, "get", mock_get)
 
     extractor = FeedExtractor(camera_feed)
+
+    mock_send = Mock()
+    monkeypatch.setattr("extractor.socket.send", mock_send)
+
     extractor._extract_frames()
-    captured = capsys.readouterr()
-    assert captured.out == "sent frame\n"
+    mock_send.assert_called_with(True)
 
 
 def test_same_video_not_processed_twice(camera_feed, monkeypatch, capsys):
