@@ -5,6 +5,7 @@ description = "Real-Time Traffic Accident Detection System"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "debugpy>=1.8.8",
     "inference>=0.24.0",
     "jsonpickle>=3.3.0",
     "opencv-python>=4.10.0.84",

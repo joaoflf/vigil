@@ -22,15 +22,15 @@ class FeedClassifier:
 
         try:
             while True:
-                self.processMessage(socket.recv())
+                self._process_message(socket.recv())
         except KeyboardInterrupt:
             print("W: interrupt received, stopping...")
         finally:
             socket.close()
             context.term()
 
-    def processMessage(self, message: bytes) -> None:
-        name, last_update, frame = pickle.loads(message)
+    def _process_message(self, message: bytes) -> None:
+        id, name, last_update, frame = pickle.loads(message)
         result = self.model.infer(frame)[0]
 
         is_accident = any(
@@ -43,8 +43,8 @@ class FeedClassifier:
 
         if is_accident:
             print("Accident found!")
-            cv2.imwrite(f"positive-{last_update}.jpg", frame)
-            with open(f"positive-{last_update}.txt", "w") as file:
+            cv2.imwrite(f"positives/{id}-{last_update}.jpg", frame)
+            with open(f"positives/{id}-{last_update}.txt", "w") as file:
                 file.write(str(jsonpickle.encode(result.predictions)))
         else:
             print("No accidents found")
