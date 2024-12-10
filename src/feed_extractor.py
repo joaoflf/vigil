@@ -1,11 +1,11 @@
+from concurrent.futures import ThreadPoolExecutor
+import numpy as np
+import ffmpeg
 import time
 import pickle
 import zmq
 from datetime import datetime
-import os
-import tempfile
 from dataclasses import dataclass
-import cv2
 import requests
 
 
@@ -40,14 +40,14 @@ class IPCameraFetcher:
 
 
 class FeedExtractor:
-    FRAME_SKIP_INTERVAL: int = 10
+    FPS_TO_EXTRACT: float = 1.0
     # TODO add observability attributes like average delay/interval between feeds
 
     def __init__(self, feeds: list[CameraFeed]) -> None:
         self.feeds = feeds
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUSH)
-        self.socket.bind("tcp://*:5556")
+        self.socket.connect("tcp://localhost:5556")
         print("Socket bound on port 5556")
 
     def start_extracting(self, interval: int) -> None:
@@ -75,6 +75,7 @@ class FeedExtractor:
             return
 
         last_modified = response.headers.get("last-modified", 0)
+        print(last_modified)
         if isinstance(last_modified, str):
             last_modified = int(
                 datetime.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z").timestamp()
@@ -84,45 +85,54 @@ class FeedExtractor:
             print(f"{camera_feed.name}: same video. Skipping")
             return
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as video_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                video_file.write(chunk)
+        probe = ffmpeg.probe(camera_feed.video_source)
+        video_info = next(s for s in probe["streams"] if s["codec_type"] == "video")
+        width = int(video_info["width"])
+        height = int(video_info["height"])
+        duration = float(video_info["duration"])
+        total_frames = int(duration * self.FPS_TO_EXTRACT)
 
-            # prevent video capture to start before finishing download
-            time.sleep(1)
-            video = cv2.VideoCapture(video_file.name)
-            total_frames = 0
-            sent_frames = 0
+        process = (
+            ffmpeg.input(camera_feed.video_source)
+            .filter("fps", fps=self.FPS_TO_EXTRACT)
+            .output("pipe:", format="rawvideo", pix_fmt="rgb24")
+            .overwrite_output()
+            .global_args("-loglevel", "quiet")
+            .run_async(pipe_stdout=True)
+        )
 
-            try:
-                while True:
-                    ret, current_frame = video.read()
-                    total_frames += 1
+        frame_count = 0
+        try:
+            while frame_count < total_frames:
+                in_bytes = process.stdout.read(width * height * 3)
+                if not in_bytes:
+                    break
 
-                    if not ret or total_frames % self.FRAME_SKIP_INTERVAL == 0:
-                        break
-
-                    serialized_data = pickle.dumps(
-                        [
-                            camera_feed.id,
-                            camera_feed.name,
-                            camera_feed.last_update,
-                            current_frame,
-                        ]
-                    )
-                    self.socket.send(serialized_data)
-                    sent_frames += 1
-
-            finally:
-                print(
-                    f"{camera_feed.name}: sent {sent_frames} frames for timestamp: {response.headers.get('last-modified', 'no timestamp')}"
+                frame = np.frombuffer(in_bytes, np.uint8).reshape([height, width, 3])
+                serialized_data = pickle.dumps(
+                    [
+                        camera_feed.id,
+                        camera_feed.name,
+                        camera_feed.last_update,
+                        frame,
+                    ]
                 )
-                video.release()
-                os.unlink(video_file.name)
-                camera_feed.last_update = last_modified
+                self.socket.send(serialized_data)
+                frame_count += 1
+
+        finally:
+            process.stdout.close()
+            process.wait()
+            print(
+                f"{camera_feed.name}: sent {frame_count} frames for timestamp: {response.headers.get('last-modified', 'no timestamp')}"
+            )
+            camera_feed.last_update = last_modified
 
 
 if __name__ == "__main__":
+    CHUNK_SIZE = 10
     feeds = IPCameraFetcher.fetch_camera_list()
-    processor = FeedExtractor(feeds)
-    processor.start_extracting(15)
+    executor = ThreadPoolExecutor()
+    for chunk in [feeds[i : i + CHUNK_SIZE] for i in range(0, len(feeds), CHUNK_SIZE)]:
+        processor = FeedExtractor(chunk)
+        executor.submit(processor.start_extracting, 15)

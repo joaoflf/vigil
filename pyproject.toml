@@ -6,9 +6,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "debugpy>=1.8.8",
+    "ffmpeg-python>=0.2.0",
     "inference>=0.24.0",
+    "ipython>=8.30.0",
     "jsonpickle>=3.3.0",
-    "opencv-python>=4.10.0.84",
     "python-dotenv>=1.0.1",
     "zmq>=0.0.0",
 ]

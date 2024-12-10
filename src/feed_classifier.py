@@ -17,7 +17,7 @@ class FeedClassifier:
 
         context = zmq.Context()
         socket = context.socket(zmq.PULL)
-        socket.connect("tcp://localhost:5556")
+        socket.bind("tcp://*:5556")
         print("Listening on 5556")
 
         try:
