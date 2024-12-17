@@ -29,9 +29,7 @@ class IPCameraFetcher:
         return [
             CameraFeed(
                 id=item["attributes"]["id_camera"],
-                name=item["attributes"]["descricao"]
-                .encode("utf-8", errors="ignore")
-                .decode("utf-8"),
+                name=item["attributes"]["descricao"],
                 road=item["attributes"]["estrada"],
                 video_source=item["attributes"]["url1"],
             )
@@ -75,7 +73,6 @@ class FeedExtractor:
             return
 
         last_modified = response.headers.get("last-modified", 0)
-        print(last_modified)
         if isinstance(last_modified, str):
             last_modified = int(
                 datetime.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z").timestamp()
@@ -96,7 +93,6 @@ class FeedExtractor:
             ffmpeg.input(camera_feed.video_source)
             .filter("fps", fps=self.FPS_TO_EXTRACT)
             .output("pipe:", format="rawvideo", pix_fmt="rgb24")
-            .overwrite_output()
             .global_args("-loglevel", "quiet")
             .run_async(pipe_stdout=True)
         )
