@@ -1,0 +1,51 @@
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana-admin-password
+      GF_SECURITY_ADMIN_USER__FILE: /run/secrets/grafana-admin-user
+    secrets:
+      - grafana-admin-user
+      - grafana-admin-password
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  influxdb2:
+    image: influxdb:2
+    ports:
+      - 8086:8086
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
+      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb2-admin-password
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb2-admin-token
+      DOCKER_INFLUXDB_INIT_ORG: calculated-randomness
+      DOCKER_INFLUXDB_INIT_BUCKET: vigil
+    secrets:
+      - influxdb2-admin-username
+      - influxdb2-admin-password
+      - influxdb2-admin-token
+    volumes:
+      - influxdb2-data:/var/lib/influxdb2
+      - influxdb2-config:/etc/influxdb2
+
+volumes:
+  grafana-storage:
+  influxdb2-data:
+  influxdb2-config:
+
+secrets:
+  influxdb2-admin-username:
+    file: ./secrets/influxdb2-admin-username
+  influxdb2-admin-password:
+    file: ./secrets/influxdb2-admin-password
+  influxdb2-admin-token:
+    file: ./secrets/influxdb2-admin-token
+  grafana-admin-user:
+    file: ./secrets/grafana-admin-user
+  grafana-admin-password:
+    file: ./secrets/grafana-admin-password

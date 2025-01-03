@@ -7,6 +7,10 @@ import zmq
 from datetime import datetime
 from dataclasses import dataclass
 import requests
+import os
+from dotenv import load_dotenv
+import influxdb_client
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 @dataclass
@@ -108,7 +112,6 @@ class FeedExtractor:
                 serialized_data = pickle.dumps(
                     [
                         camera_feed.id,
-                        camera_feed.name,
                         camera_feed.last_update,
                         frame,
                     ]
@@ -128,6 +131,29 @@ class FeedExtractor:
 if __name__ == "__main__":
     CHUNK_SIZE = 10
     feeds = IPCameraFetcher.fetch_camera_list()
+
+    load_dotenv()
+    client = influxdb_client.InfluxDBClient(
+        url=os.environ.get("INFLUX_HOST") or "",
+        token=os.environ.get("INFLUX_TOKEN"),
+        org=os.environ.get("INFLUX_ORG"),
+    )
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    points = [
+        influxdb_client.Point("feed")
+        .tag("id", feed.id)
+        .tag("name", feed.name)
+        .tag("road", feed.road)
+        .field("last_update", feed.last_update)
+        .field("video_source", feed.video_source)
+        .field("online", False)
+        .field("accident", False)
+        for feed in feeds
+    ]
+
+    write_api.write(bucket="vigil", record=points)
+
     executor = ThreadPoolExecutor()
     for chunk in [feeds[i : i + CHUNK_SIZE] for i in range(0, len(feeds), CHUNK_SIZE)]:
         processor = FeedExtractor(chunk)

@@ -8,6 +8,7 @@ dependencies = [
     "debugpy>=1.8.8",
     "ffmpeg-python>=0.2.0",
     "inference>=0.24.0",
+    "influxdb-client>=1.48.0",
     "jsonpickle>=3.3.0",
     "python-dotenv>=1.0.1",
     "zmq>=0.0.0",
